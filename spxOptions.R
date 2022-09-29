@@ -19,7 +19,7 @@ d1 <- data.frame(fread("C:\\Users\\kim_t\\Desktop\\data\\options\\db1_2022-09-21
       rename(ticker = act_symbol, expr_date = expiration, k = strike, c_p = call_put) %>% 
       mutate(date = as.Date(date), expr_date = as.Date(expr_date), mid = 0.5 * (bid + ask), 
              c_p = if_else(c_p == "Call", "c", "p")) %>%
-      filter(ticker == "SPY", date >= (Sys.Date()-100)) %>%
+      filter(ticker == "SPY") %>%
       arrange(date, expr_date, k) 
 
 d2 <- data.frame(getSymbols("SPY", from = min(d1$date), to = max(d1$date), auto.assign = FALSE)) %>%
@@ -45,41 +45,38 @@ dates <- seq(min(d1$date), max(d1$date), by = 1)
 dates <- dates[!(weekdays(dates) %in% c("Saturday", "Sunday"))]
 dates <- dates[!(dates %in% holidays)]
 
-rebalanceDays <- vector()
-for (i in 2020:2022) {
-  
-  for (j in 1:12) {
-    
-    temp <- getNthDayOfWeek(third, Fri, j, i)
-    
-    if (temp < min(d3$date)) {
-      
-      next;
-    }
-    if (temp > max(d3$date)) {
-      
-      break;
-    }
-    while(TRUE) {
-      
-      if (!(temp %in% d3$date)) {
-       
-        temp <- temp-1 
-        print(temp)
-      }
-      else {
-        
-        rebalanceDays <- c(rebalanceDays, as.character(temp))
-        break;
-      }
-    }
-  }
-}; rebalanceDays <- as.Date(rebalanceDays)
+spxOptions <- function(monthStart, yearStart, monthEnd, yearEnd) {
 
-d3 <- d3 %>% 
-      filter(expr_date %in% rebalanceDays, 
-      abs(as.numeric(date - expr_date)) <= max(as.numeric(diff(rebalanceDays))))
+      rebalanceDays <- vector()
+      for (i in yearStart:yearEnd) {
+        for (j in monthStart:monthEnd) {
 
+          temp <- getNthDayOfWeek(third, Fri, j, i)
+
+          if (temp < min(d3$date)) {
+
+            next;
+          }
+          if (temp > max(d3$date)) {
+
+            break;
+          }
+          while(TRUE) {
+
+            if (!(temp %in% d3$date)) {
+
+              temp <- temp-1 
+              print(temp)
+            }
+            else {
+
+              rebalanceDays <- c(rebalanceDays, as.character(temp))
+              break;
+            }
+          }
+        }
+      }; rebalanceDays <- as.Date(rebalanceDays)
+}
 
 
 
